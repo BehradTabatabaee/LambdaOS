@@ -1,5 +1,6 @@
 all:
-	nasm -f bin ./boot/boot.asm -o ./boot/boot.bin
-	dd if=./boot/message.txt >> ./boot/boot.bin
-	dd if=/dev/zero bs=512 count=1 >> ./boot/boot.bin
-	qemu-system-x86_64 -hda ./boot/boot.bin
+	nasm -f bin ./src/boot/boot.asm -o ./bin/boot.bin
+	qemu-system-x86_64 -hda ./bin/boot.bin
+
+clean:
+	rm -rf ./bin/boot.bin
