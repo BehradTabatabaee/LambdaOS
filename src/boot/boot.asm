@@ -67,16 +67,61 @@ gdt_descriptor:
 
 [BITS 32]
 
-protected_reached: ; setting the registers
-    mov ax, DATA_SEG
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-    mov ebp, 0x00200000
-    mov esp, ebp
-    jmp $
+protected_reached: ; gotta load our kernel from the hard
+    mov eax, 1 ; load from sector 1
+    mov ecx, 100 ; for a total of 100 sectors
+    mov edi, 0x0100000 ; into the address of edi
+    call ata_lba_read
+    jmp CODE_SEG:0x0100000
+
+ata_lba_read: ; gotta send the LBA information to cpu buses
+    mov ebx, eax  ; backup the LBA which is a 512 bytes sector
+    ; sending the highest 8 bits of the LBA
+    shr eax, 24 ; shift the eax register 24 bits to the right to get the highest 8 bits
+    or eax, 0xE0 ; select the master drive
+    mov dx, 0x1F6
+    out dx, al ; sent the highest 8 bits
+
+    ; sending number of sectors to read
+    mov eax, ecx
+    mov dx, 0x1F2
+    out dx, al ; sent the number of sectors to read
+
+    mov eax, ebx ; restore the backup LBA so we can send the remainder
+    mov dx, 0x1F3
+    out dx, al ; sent another 8 bits
+
+    mov eax, ebx ; restoring the backup LBA so we can send the remainder
+    mov dx, 0x1F4
+    shr eax , 8
+    out dx, al ; and another 8 bits
+
+    mov eax, ebx ; restoring the backup LBA so we can send the remainder
+    mov dx, 0x1F5
+    shr eax, 16 ; getting the last 8 bits 
+    out dx, al ; finished sending the LBA to cpu buses
+
+    mov dx, 0x1F7 ; command port
+    mov al, 0x20 ; read with retry
+    out dx, al
+
+.next_sector:
+    push ecx
+
+.try_again:
+    mov dx, 0x1F7
+    in al, dx
+    test al, 8
+    jz .try_again
+
+    ; read 256 words at a time
+    mov ecx, 256
+    mov dx, 0x1F0
+    rep insw ; read a word from the port 0x1F0 and store it into edi for 256 times
+    pop ecx
+    loop .next_sector
+    ; finished reading sectors
+    ret
 
 times 510-($-$$) db 0
 dw 0xAA55
