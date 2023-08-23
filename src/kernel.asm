@@ -18,6 +18,16 @@ _start: ; setting the registers
     in al, 0x92
     or al, 2
     out 0x92, al
+
+    ; remapping the master PIC
+    mov al, 00010001b
+    out 0x20, al ; tell master PIC to initialize 
+    mov al, 0x20; interrupt 0x20 is where master ISR should start
+    out 0x21, al
+    mov al, 00000001b
+    out 0x21, al
+    ; master PIC remapped
+    
     call kernel_main
     jmp $
 
