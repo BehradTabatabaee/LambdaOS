@@ -1,0 +1,7 @@
+{
+	"files.associations": {
+		"heap.h": "c",
+		"stdbool.h": "c",
+		"status.h": "c"
+	}
+}

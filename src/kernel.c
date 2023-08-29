@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include "idt/idt.h"
 #include "io/io.h"
+#include "memory/heap/kheap.h"
 
 uint16_t *video_mem = (uint16_t *)(0xB8000);
 uint16_t terminal_row = 0;
@@ -68,7 +69,10 @@ void terminal_print_string(const char *str, char color)
 void kernel_main()
 {
     init_terminal();
-    terminal_print_string("Hello World!\nIm A Fucking God!", 2);
+    terminal_print_string("Hello World!\nIm A Fucking God!\n", 2);
+
+    // initializing kernel's heap
+    kheap_init();
 
     // initializing the interrupt descriptor table
     idt_init();
