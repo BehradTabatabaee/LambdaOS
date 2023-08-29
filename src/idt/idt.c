@@ -13,7 +13,7 @@ extern void no_interrupt();
 
 void int21h_handler()
 {
-    terminal_print_string("Keyboard Pressed!", 2);
+    terminal_print_string("Keyboard Pressed!\n", 2);
     outb(0x20, 0x20);
 }
 
